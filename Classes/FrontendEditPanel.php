@@ -95,7 +95,7 @@ class FrontendEditPanel
         $this->frontendController->set_no_cache('Frontend edit panel is shown', true);
 
         $formName = 'TSFE_EDIT_FORM_' . substr($this->frontendController->uniqueHash(), 0, 4);
-        $formTag = '<form name="' . $formName . '" id ="' . $formName . '" action="' . htmlspecialchars(GeneralUtility::getIndpEnv('REQUEST_URI')) . '" method="post" enctype="multipart/form-data" onsubmit="return TBE_EDITOR.checkSubmit(1);">';
+        $formTag = '<form name="' . $formName . '" id ="' . $formName . '" action="' . htmlspecialchars($this->getReturnUrl($dataArr['uid'] ?? null)) . '" method="post" enctype="multipart/form-data">';
         $sortField = $GLOBALS['TCA'][$table]['ctrl']['sortby'];
         $labelField = $GLOBALS['TCA'][$table]['ctrl']['label'];
         $hideField = $GLOBALS['TCA'][$table]['ctrl']['enablecolumns']['disabled'];
@@ -156,7 +156,7 @@ class FrontendEditPanel
 
         $panel = '<!-- BE_USER Edit Panel: -->
 								' . $formTag . $hiddenFieldString . '
-									<input type="hidden" name="TSFE_EDIT[cmd]" value="" />
+									<input type="hidden" class="typo3-feedit-cmd" name="TSFE_EDIT[cmd]" value="" />
 									<input type="hidden" name="TSFE_EDIT[record]" value="' . $currentRecord . '" />
 									<div class="typo3-editPanel">'
                                         . '<div class="typo3-editPanel-btn-group">'
@@ -214,7 +214,7 @@ class FrontendEditPanel
         // Special content is about to be shown, so the cache must be disabled.
         $this->frontendController->set_no_cache('Display frontend edit icons', true);
         $iconTitle = $this->cObj->stdWrap($conf['iconTitle'], $conf['iconTitle.']);
-        $iconImg = '<span title="' . htmlspecialchars($iconTitle, ENT_COMPAT, 'UTF-8', false) . '" style="' . ($conf['styleAttribute'] ? htmlspecialchars($conf['styleAttribute']) : '') . '">'
+        $iconImg = '<span title="' . htmlspecialchars($iconTitle, ENT_COMPAT, 'UTF-8', false) . '" >'
             . $this->iconFactory->getIcon('actions-document-open', Icon::SIZE_SMALL)->render('inline')
             . '</span>';
         $noView = GeneralUtility::_GP('ADMCMD_view') ? 1 : 0;
@@ -277,14 +277,10 @@ class FrontendEditPanel
                 $out = $this->editPanelLinkWrap_doWrap($string, (string)$uriBuilder->buildUriFromRoute('record_edit', ['edit[' . $rParts[0] . '][' . $nPid . ']' => 'new', 'noView' => $noView]), $currentRecord);
             }
         } else {
-            if ($confirm && $this->backendUser->jsConfirmation(JsConfirmation::FE_EDIT)) {
-                // Gets htmlspecialchared later
-                $cf1 = 'if (confirm(' . GeneralUtility::quoteJSvalue($confirm) . ')) {';
-                $cf2 = '}';
-            } else {
-                $cf1 = ($cf2 = '');
+            if ($confirm && $this->backendUser->jsConfirmation(JsConfirmation::FE_EDIT) === false) {
+                $confirm = '';
             }
-            $out = '<a href="#" class="typo3-editPanel-btn typo3-editPanel-btn-default" onclick="' . htmlspecialchars($cf1 . 'document.' . $formName . '[\'TSFE_EDIT[cmd]\'].value=\'' . $cmd . '\'; document.' . $formName . '.submit();' . $cf2 . ' return false;') . '">' . $string . '</a>';
+            $out = '<a href="#" class="typo3-editPanel-btn typo3-editPanel-btn-default typo3-feedit-btn-submitForm" data-feedit-confirm="' . htmlspecialchars($confirm) . '" data-feedit-formname="' . htmlspecialchars($formName) . '" data-feedit-cmd="' . htmlspecialchars($cmd) . '">' . $string . '</a>';
         }
         return $out;
     }
@@ -300,10 +296,10 @@ class FrontendEditPanel
      */
     protected function editPanelLinkWrap_doWrap($string, $url, $additionalClasses = '')
     {
-        $width = MathUtility::forceIntegerInRange($this->backendUser->getTSConfig()['options.']['feedit.']['popupWidth'] ?? 690, 690, 5000, 690);
-        $height = MathUtility::forceIntegerInRange($this->backendUser->getTSConfig()['options.']['feedit.']['popupHeight'] ?? 500, 500, 5000, 500);
-        $onclick = 'vHWin=window.open(' . GeneralUtility::quoteJSvalue($url . '&returnUrl=' . rawurlencode(PathUtility::getAbsoluteWebPath(GeneralUtility::getFileAbsFileName('EXT:backend/Resources/Public/Html/Close.html')))) . ',\'FEquickEditWindow\',\'width=' . $width . ',height=' . $height . ',status=0,menubar=0,scrollbars=1,resizable=1\');vHWin.focus();return false;';
-        return '<a href="#" class="typo3-editPanel-btn typo3-editPanel-btn-default frontEndEditIconLinks ' . htmlspecialchars($additionalClasses) . '" onclick="' . htmlspecialchars($onclick) . '" style="display: none;">' . $string . '</a>';
+        $classes = 'typo3-editPanel-btn typo3-editPanel-btn-default typo3-feedit-btn-openBackend frontEndEditIconLinks ' . htmlspecialchars($additionalClasses);
+        return '<a href="#" class="' . $classes . '" ' . $this->getDataAttributes($url) . '>' .
+            $string .
+            '</a>';
     }
 
     /**
@@ -353,6 +349,41 @@ class FrontendEditPanel
             }
         }
         return htmlspecialchars($this->getLanguageService()->getLL($key));
+    }
+
+    /**
+     * Returns data attributes to call the provided url via JavaScript.
+     *
+     * @param string $url The url to call via JavaScript.
+     * @return string Data attributes without whitespace at beginning or end.
+     */
+    protected function getDataAttributes(string $url): string
+    {
+        $t3BeSitenameMd5 = md5('Typo3Backend-' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']);
+
+        return implode(' ', [
+            'data-backendScript="' . $url . '"',
+            'data-t3BeSitenameMd5="' . $t3BeSitenameMd5 . '"',
+        ]);
+    }
+
+    /**
+     * Returns the returnUrl used by TYPO3. Add this as "returnUrl=" to any url that allows the user to go back or close an form.
+     *
+     * @param int $recordUid The record which was edited. Or null if no record was edited. Used to jump back to that record.
+     * @return string The return url.
+     */
+    protected function getReturnUrl(int $recordUid = null): string
+    {
+        $url = GeneralUtility::getIndpEnv('REQUEST_URI');
+
+        if (is_int($recordUid)) {
+            $uri = new Uri($url);
+            $uri = $uri->withFragment('#c' . $recordUid);
+            $url = (string) $uri;
+        }
+
+        return $url;
     }
 
     /**
