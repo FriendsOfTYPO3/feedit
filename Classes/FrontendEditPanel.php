@@ -13,8 +13,9 @@ namespace TYPO3\CMS\Feedit;
  *
  * The TYPO3 project - inspiring people to share!
  */
-use TYPO3\CMS\Adminpanel\Service\EditToolbarService;
+
 use TYPO3\CMS\Backend\FrontendBackendUserAuthentication;
+use TYPO3\CMS\Core\Http\Uri;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Localization\LanguageService;
@@ -22,6 +23,7 @@ use TYPO3\CMS\Core\Type\Bitmask\JsConfirmation;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Feedit\Service\EditToolbarService;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
@@ -94,7 +96,7 @@ class FrontendEditPanel
         $this->frontendController->set_no_cache('Frontend edit panel is shown', true);
 
         $formName = 'TSFE_EDIT_FORM_' . substr($this->frontendController->uniqueHash(), 0, 4);
-        $formTag = '<form name="' . $formName . '" id ="' . $formName . '" action="' . htmlspecialchars(GeneralUtility::getIndpEnv('REQUEST_URI')) . '" method="post" enctype="multipart/form-data" onsubmit="return TBE_EDITOR.checkSubmit(1);">';
+        $formTag = '<form name="' . $formName . '" id ="' . $formName . '" action="' . htmlspecialchars($this->getReturnUrl($dataArr['uid'] ?? null)) . '" method="post" enctype="multipart/form-data" onsubmit="return TBE_EDITOR.checkSubmit(1);">';
         $sortField = $GLOBALS['TCA'][$table]['ctrl']['sortby'];
         $labelField = $GLOBALS['TCA'][$table]['ctrl']['label'];
         $hideField = $GLOBALS['TCA'][$table]['ctrl']['enablecolumns']['disabled'];
@@ -157,7 +159,7 @@ class FrontendEditPanel
 								' . $formTag . $hiddenFieldString . '
 									<input type="hidden" name="TSFE_EDIT[cmd]" value="" />
 									<input type="hidden" name="TSFE_EDIT[record]" value="' . $currentRecord . '" />
-									<div class="typo3-editPanel" style="display: none;">'
+									<div class="typo3-editPanel">'
                                         . '<div class="typo3-editPanel-btn-group">'
                                         . $panel
                                         . '</div>' .
@@ -225,7 +227,8 @@ class FrontendEditPanel
                 'edit[' . $table . '][' . $editUid . ']' => 'edit',
                 'columnsOnly' => $fieldList,
                 'noView' => $noView,
-                'feEdit' => 1
+                'feEdit' => 1,
+                'returnUrl' => htmlspecialchars($this->getReturnUrl($editUid)),
             ]
         ) . $addUrlParamStr;
         $icon = $this->editPanelLinkWrap_doWrap($iconImg, $url, 'content-link');
@@ -264,16 +267,54 @@ class FrontendEditPanel
         $uriBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Routing\UriBuilder::class);
         if ($cmd === 'edit') {
             $rParts = explode(':', $currentRecord);
-            $out = $this->editPanelLinkWrap_doWrap($string, (string)$uriBuilder->buildUriFromRoute('record_edit', ['edit[' . $rParts[0] . '][' . $rParts[1] . ']' => 'edit', 'noView' => $noView, 'feEdit' => 1]), $currentRecord);
+            $out = $this->editPanelLinkWrap_doWrap(
+                $string,
+                (string)$uriBuilder->buildUriFromRoute(
+                    'record_edit',
+                    [
+                        'edit[' . $rParts[0] . '][' . $rParts[1] . ']' => 'edit',
+                        'noView' => $noView,
+                        'feEdit' => 1,
+                        'returnUrl' => htmlspecialchars($this->getReturnUrl($rParts[1])),
+                    ]
+                ),
+                $currentRecord
+            );
         } elseif ($cmd === 'new') {
             $rParts = explode(':', $currentRecord);
+            $uidForReturn = null;
+            if (is_numeric($rParts[1])) {
+                $uidForReturn = $rParts[1];
+            }
             if ($rParts[0] === 'pages') {
-                $out = $this->editPanelLinkWrap_doWrap($string, (string)$uriBuilder->buildUriFromRoute('db_new', ['id' => $rParts[1], 'pagesOnly' => 1]), $currentRecord);
+                $out = $this->editPanelLinkWrap_doWrap(
+                    $string,
+                    (string)$uriBuilder->buildUriFromRoute(
+                        'db_new',
+                        [
+                            'id' => $rParts[1],
+                            'pagesOnly' => 1,
+                            'returnUrl' => htmlspecialchars($this->getReturnUrl($uidForReturn)),
+                        ]
+                    ),
+                    $currentRecord
+                );
             } else {
                 if (!(int)$nPid) {
                     $nPid = MathUtility::canBeInterpretedAsInteger($rParts[1]) ? -$rParts[1] : $this->frontendController->id;
                 }
-                $out = $this->editPanelLinkWrap_doWrap($string, (string)$uriBuilder->buildUriFromRoute('record_edit', ['edit[' . $rParts[0] . '][' . $nPid . ']' => 'new', 'noView' => $noView]), $currentRecord);
+                $out = $this->editPanelLinkWrap_doWrap(
+                    $string,
+                    (string)$uriBuilder->buildUriFromRoute(
+                        'record_edit',
+                        [
+                            'edit[' . $rParts[0] . '][' . $nPid . ']' => 'new',
+                            'noView' => $noView,
+                            'returnUrl' => htmlspecialchars($this->getReturnUrl($uidForReturn)),
+                        ]
+                    ),
+                    $currentRecord
+                );
             }
         } else {
             if ($confirm && $this->backendUser->jsConfirmation(JsConfirmation::FE_EDIT)) {
@@ -302,7 +343,7 @@ class FrontendEditPanel
         $width = MathUtility::forceIntegerInRange($this->backendUser->getTSConfig()['options.']['feedit.']['popupWidth'] ?? 690, 690, 5000, 690);
         $height = MathUtility::forceIntegerInRange($this->backendUser->getTSConfig()['options.']['feedit.']['popupHeight'] ?? 500, 500, 5000, 500);
         $onclick = 'vHWin=window.open(' . GeneralUtility::quoteJSvalue($url . '&returnUrl=' . rawurlencode(PathUtility::getAbsoluteWebPath(GeneralUtility::getFileAbsFileName('EXT:backend/Resources/Public/Html/Close.html')))) . ',\'FEquickEditWindow\',\'width=' . $width . ',height=' . $height . ',status=0,menubar=0,scrollbars=1,resizable=1\');vHWin.focus();return false;';
-        return '<a href="#" class="typo3-editPanel-btn typo3-editPanel-btn-default frontEndEditIconLinks ' . htmlspecialchars($additionalClasses) . '" onclick="' . htmlspecialchars($onclick) . '" style="display: none;">' . $string . '</a>';
+        return '<a href="#" class="typo3-editPanel-btn typo3-editPanel-btn-default frontEndEditIconLinks ' . htmlspecialchars($additionalClasses) . '" onclick="' . htmlspecialchars($onclick) . '">' . $string . '</a>';
     }
 
     /**
@@ -352,6 +393,25 @@ class FrontendEditPanel
             }
         }
         return htmlspecialchars($this->getLanguageService()->getLL($key));
+    }
+
+    /**
+     * Returns the returnUrl used by TYPO3. Add this as "returnUrl=" to any url that allows the user to go back or close an form.
+     *
+     * @param int $recordUid The record which was edited. Or null if no record was edited. Used to jump back to that record.
+     * @return string The return url.
+     */
+    protected function getReturnUrl(int $recordUid = null): string
+    {
+        $url = GeneralUtility::getIndpEnv('REQUEST_URI');
+
+        if (is_int($recordUid)) {
+            $uri = new Uri($url);
+            $uri = $uri->withFragment('#c' . $recordUid);
+            $url = (string) $uri;
+        }
+
+        return $url;
     }
 
     /**
