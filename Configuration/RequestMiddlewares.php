@@ -15,7 +15,10 @@ return [
             'after' => [
                 'typo3/cms-adminpanel/initiator',
                 'typo3/cms-frontend/page-resolver',
-            ]
+            ],
+            'before' => [
+                'typo3/cms-frontend/prepare-tsfe-rendering',
+            ],
         ],
     ]
 ];

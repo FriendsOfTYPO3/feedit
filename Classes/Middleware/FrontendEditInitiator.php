@@ -20,9 +20,11 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use TYPO3\CMS\Adminpanel\Service\ConfigurationService;
 use TYPO3\CMS\Backend\FrontendBackendUserAuthentication;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Feedit\DataHandling\FrontendEditDataHandler;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * PSR-15 middleware initializing frontend editing
@@ -43,6 +45,11 @@ class FrontendEditInitiator implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (isset($GLOBALS['BE_USER']) && $GLOBALS['BE_USER'] instanceof FrontendBackendUserAuthentication) {
+            $this->initializeTypoScriptFrontend(
+                $GLOBALS['TSFE'],
+                $request,
+                GeneralUtility::makeInstance(ConfigurationService::class)
+            );
             $config = $GLOBALS['BE_USER']->getTSConfig()['admPanel.'] ?? [];
             $active = (int)$GLOBALS['TSFE']->displayEditIcons === 1 || (int)$GLOBALS['TSFE']->displayFieldEditIcons === 1;
             // Include classes for editing IF editing module in Admin Panel is open
@@ -82,5 +89,24 @@ class FrontendEditInitiator implements MiddlewareInterface
             }
         }
         return false;
+    }
+
+    protected function initializeTypoScriptFrontend(
+        TypoScriptFrontendController $typoScriptFrontend,
+        ServerRequestInterface $request,
+        ConfigurationService $configurationService
+    ): void {
+        $typoScriptFrontend->displayEditIcons = $configurationService->getConfigurationOption('edit', 'displayIcons');
+        $typoScriptFrontend->displayFieldEditIcons = $configurationService->getConfigurationOption('edit', 'displayFieldIcons');
+
+        if ($request->getQueryParams()['ADMCMD_editIcons'] ?? $request->getParsedBody()['ADMCMD_editIcons'] ?? false) {
+            $typoScriptFrontend->displayFieldEditIcons = '1';
+        }
+        if ($typoScriptFrontend->displayEditIcons) {
+            $typoScriptFrontend->set_no_cache('Admin Panel: Display edit icons', true);
+        }
+        if ($typoScriptFrontend->displayFieldEditIcons) {
+            $typoScriptFrontend->set_no_cache('Admin Panel: Display field edit icons', true);
+        }
     }
 }

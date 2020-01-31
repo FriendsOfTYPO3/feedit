@@ -13,7 +13,7 @@ namespace TYPO3\CMS\Feedit;
  *
  * The TYPO3 project - inspiring people to share!
  */
-use TYPO3\CMS\Adminpanel\Service\EditToolbarService;
+
 use TYPO3\CMS\Backend\FrontendBackendUserAuthentication;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
@@ -22,6 +22,7 @@ use TYPO3\CMS\Core\Type\Bitmask\JsConfirmation;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Feedit\Service\EditToolbarService;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
@@ -157,7 +158,7 @@ class FrontendEditPanel
 								' . $formTag . $hiddenFieldString . '
 									<input type="hidden" name="TSFE_EDIT[cmd]" value="" />
 									<input type="hidden" name="TSFE_EDIT[record]" value="' . $currentRecord . '" />
-									<div class="typo3-editPanel" style="display: none;">'
+									<div class="typo3-editPanel">'
                                         . '<div class="typo3-editPanel-btn-group">'
                                         . $panel
                                         . '</div>' .

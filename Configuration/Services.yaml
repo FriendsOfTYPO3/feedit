@@ -1,0 +1,11 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  TYPO3\CMS\Feedit\:
+    resource: '../Classes/*'
+
+  TYPO3\CMS\Feedit\Modules\EditModule:
+    public: true
