@@ -56,7 +56,7 @@ class EditToolbarService
         $langAllowed = $this->getBackendUser()->checkLanguageAccess($languageAspect->getId());
         $id = $tsfe->id;
         $returnUrl = GeneralUtility::getIndpEnv('REQUEST_URI');
-        $classes = 'typo3-adminPanel-btn typo3-adminPanel-btn-default typo3-adminPanel-btn-openBackend';
+        $classes = 'typo3-adminPanel-btn typo3-adminPanel-btn-default typo3-feedit-btn-openBackend';
         $output = [];
         $output[] = '<div class="typo3-adminPanel-form-group">';
         $output[] = '  <div class="typo3-adminPanel-btn-group" role="group">';

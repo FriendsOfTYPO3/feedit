@@ -96,7 +96,7 @@ class FrontendEditPanel
         $this->frontendController->set_no_cache('Frontend edit panel is shown', true);
 
         $formName = 'TSFE_EDIT_FORM_' . substr($this->frontendController->uniqueHash(), 0, 4);
-        $formTag = '<form name="' . $formName . '" id ="' . $formName . '" action="' . htmlspecialchars($this->getReturnUrl($dataArr['uid'] ?? null)) . '" method="post" enctype="multipart/form-data" onsubmit="return TBE_EDITOR.checkSubmit(1);">';
+        $formTag = '<form name="' . $formName . '" id ="' . $formName . '" action="' . htmlspecialchars($this->getReturnUrl($dataArr['uid'] ?? null)) . '" method="post" enctype="multipart/form-data">';
         $sortField = $GLOBALS['TCA'][$table]['ctrl']['sortby'];
         $labelField = $GLOBALS['TCA'][$table]['ctrl']['label'];
         $hideField = $GLOBALS['TCA'][$table]['ctrl']['enablecolumns']['disabled'];
@@ -156,16 +156,16 @@ class FrontendEditPanel
         }
 
         $panel = '<!-- BE_USER Edit Panel: -->
-								' . $formTag . $hiddenFieldString . '
-									<input type="hidden" name="TSFE_EDIT[cmd]" value="" />
-									<input type="hidden" name="TSFE_EDIT[record]" value="' . $currentRecord . '" />
-									<div class="typo3-editPanel">'
+                                ' . $formTag . $hiddenFieldString . '
+                                    <input type="hidden" class="typo3-feedit-cmd" name="TSFE_EDIT[cmd]" value="" />
+                                    <input type="hidden" name="TSFE_EDIT[record]" value="' . $currentRecord . '" />
+                                    <div class="typo3-editPanel">'
                                         . '<div class="typo3-editPanel-btn-group">'
                                         . $panel
                                         . '</div>' .
             ($labelTxt ? '<div class="typo3-editPanel-label">' . sprintf($labelTxt, htmlspecialchars(GeneralUtility::fixed_lgd_cs($dataArr[$labelField], 50))) . '</div>' : '') . '
-									</div>
-								</form>';
+                                    </div>
+                                </form>';
 
         // Wrap the panel
         if ($conf['innerWrap']) {
@@ -215,7 +215,7 @@ class FrontendEditPanel
         // Special content is about to be shown, so the cache must be disabled.
         $this->frontendController->set_no_cache('Display frontend edit icons', true);
         $iconTitle = $this->cObj->stdWrap($conf['iconTitle'], $conf['iconTitle.']);
-        $iconImg = '<span title="' . htmlspecialchars($iconTitle, ENT_COMPAT, 'UTF-8', false) . '" style="' . ($conf['styleAttribute'] ? htmlspecialchars($conf['styleAttribute']) : '') . '">'
+        $iconImg = '<span title="' . htmlspecialchars($iconTitle, ENT_COMPAT, 'UTF-8', false) . '" >'
             . $this->iconFactory->getIcon('actions-document-open', Icon::SIZE_SMALL)->render('inline')
             . '</span>';
         $noView = GeneralUtility::_GP('ADMCMD_view') ? 1 : 0;
@@ -317,14 +317,10 @@ class FrontendEditPanel
                 );
             }
         } else {
-            if ($confirm && $this->backendUser->jsConfirmation(JsConfirmation::FE_EDIT)) {
-                // Gets htmlspecialchared later
-                $cf1 = 'if (confirm(' . GeneralUtility::quoteJSvalue($confirm) . ')) {';
-                $cf2 = '}';
-            } else {
-                $cf1 = ($cf2 = '');
+            if ($confirm && $this->backendUser->jsConfirmation(JsConfirmation::FE_EDIT) === false) {
+                $confirm = '';
             }
-            $out = '<a href="#" class="typo3-editPanel-btn typo3-editPanel-btn-default" onclick="' . htmlspecialchars($cf1 . 'document.' . $formName . '[\'TSFE_EDIT[cmd]\'].value=\'' . $cmd . '\'; document.' . $formName . '.submit();' . $cf2 . ' return false;') . '">' . $string . '</a>';
+            $out = '<a href="#" class="typo3-editPanel-btn typo3-editPanel-btn-default typo3-feedit-btn-submitForm" data-feedit-confirm="' . htmlspecialchars($confirm) . '" data-feedit-formname="' . htmlspecialchars($formName) . '" data-feedit-cmd="' . htmlspecialchars($cmd) . '">' . $string . '</a>';
         }
         return $out;
     }
@@ -340,10 +336,10 @@ class FrontendEditPanel
      */
     protected function editPanelLinkWrap_doWrap($string, $url, $additionalClasses = '')
     {
-        $width = MathUtility::forceIntegerInRange($this->backendUser->getTSConfig()['options.']['feedit.']['popupWidth'] ?? 690, 690, 5000, 690);
-        $height = MathUtility::forceIntegerInRange($this->backendUser->getTSConfig()['options.']['feedit.']['popupHeight'] ?? 500, 500, 5000, 500);
-        $onclick = 'vHWin=window.open(' . GeneralUtility::quoteJSvalue($url . '&returnUrl=' . rawurlencode(PathUtility::getAbsoluteWebPath(GeneralUtility::getFileAbsFileName('EXT:backend/Resources/Public/Html/Close.html')))) . ',\'FEquickEditWindow\',\'width=' . $width . ',height=' . $height . ',status=0,menubar=0,scrollbars=1,resizable=1\');vHWin.focus();return false;';
-        return '<a href="#" class="typo3-editPanel-btn typo3-editPanel-btn-default frontEndEditIconLinks ' . htmlspecialchars($additionalClasses) . '" onclick="' . htmlspecialchars($onclick) . '">' . $string . '</a>';
+        $classes = 'typo3-editPanel-btn typo3-editPanel-btn-default typo3-feedit-btn-openBackend frontEndEditIconLinks ' . htmlspecialchars($additionalClasses);
+        return '<a href="#" class="' . $classes . '" ' . $this->getDataAttributes($url) . '>' .
+            $string .
+            '</a>';
     }
 
     /**
@@ -393,6 +389,22 @@ class FrontendEditPanel
             }
         }
         return htmlspecialchars($this->getLanguageService()->getLL($key));
+    }
+
+    /**
+     * Returns data attributes to call the provided url via JavaScript.
+     *
+     * @param string $url The url to call via JavaScript.
+     * @return string Data attributes without whitespace at beginning or end.
+     */
+    protected function getDataAttributes(string $url): string
+    {
+        $t3BeSitenameMd5 = md5('Typo3Backend-' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']);
+
+        return implode(' ', [
+            'data-backendScript="' . $url . '"',
+            'data-t3BeSitenameMd5="' . $t3BeSitenameMd5 . '"',
+        ]);
     }
 
     /**
