@@ -21,9 +21,10 @@ use TYPO3\CMS\Adminpanel\ModuleApi\AbstractModule;
 use TYPO3\CMS\Adminpanel\ModuleApi\InitializableInterface;
 use TYPO3\CMS\Adminpanel\ModuleApi\PageSettingsProviderInterface;
 use TYPO3\CMS\Adminpanel\ModuleApi\ResourceProviderInterface;
-use TYPO3\CMS\Adminpanel\Service\EditToolbarService;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Feedit\Service\EditToolbarService;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
@@ -32,6 +33,20 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  */
 class EditModule extends AbstractModule implements PageSettingsProviderInterface, InitializableInterface, ResourceProviderInterface
 {
+    /**
+     * @var UriBuilder
+     */
+    protected $uriBuilder;
+
+    /**
+     * @param UriBuilder $uriBuilder
+     */
+    public function __construct(UriBuilder $uriBuilder)
+    {
+        parent::__construct();
+        $this->uriBuilder = $uriBuilder;
+    }
+
     /**
      * Creates the content for the "edit" section ("module") of the Admin Panel
      *
@@ -53,9 +68,12 @@ class EditModule extends AbstractModule implements PageSettingsProviderInterface
                 ],
                 'toolbar' => $toolbar,
                 'script' => [
-                    'pageUid' => (int)$this->getTypoScriptFrontendController()->page['uid'],
-                    'pageModule' => $this->getPageModule(),
-                    'backendScript' => BackendUtility::getBackendScript(),
+                    'backendScript' => $this->uriBuilder->buildUriFromRoute(
+                        'web_layout',
+                        [
+                            'id' => (int)$this->getTypoScriptFrontendController()->page['uid'],
+                        ]
+                    ),
                     't3BeSitenameMd5' => md5('Typo3Backend-' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename']),
                 ],
             ]
@@ -113,19 +131,6 @@ class EditModule extends AbstractModule implements PageSettingsProviderInterface
      */
     public function initializeModule(ServerRequestInterface $request): void
     {
-        $typoScriptFrontend = $this->getTypoScriptFrontendController();
-        $typoScriptFrontend->displayEditIcons = $this->configurationService->getConfigurationOption('edit', 'displayIcons');
-        $typoScriptFrontend->displayFieldEditIcons = $this->configurationService->getConfigurationOption('edit', 'displayFieldIcons');
-
-        if ($request->getQueryParams()['ADMCMD_editIcons'] ?? $request->getParsedBody()['ADMCMD_editIcons'] ?? false) {
-            $typoScriptFrontend->displayFieldEditIcons = '1';
-        }
-        if ($typoScriptFrontend->displayEditIcons) {
-            $typoScriptFrontend->set_no_cache('Admin Panel: Display edit icons', true);
-        }
-        if ($typoScriptFrontend->displayFieldEditIcons) {
-            $typoScriptFrontend->set_no_cache('Admin Panel: Display field edit icons', true);
-        }
     }
 
     /**
