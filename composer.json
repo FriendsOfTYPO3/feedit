@@ -1,7 +1,7 @@
 {
 	"name": "friendsoftypo3/feedit",
 	"type": "typo3-cms-extension",
-	"description": "",
+	"description": "Provide functionality for edit toolbars of pages and content",
 	"homepage": "https://typo3.org",
 	"license": ["GPL-2.0-or-later"],
 	"authors": [{
@@ -13,10 +13,10 @@
 		"sort-packages": true
 	},
 	"require": {
-		"typo3/cms-adminpanel": "10.*.*@dev",
-		"typo3/cms-backend": "10.*.*@dev",
-		"typo3/cms-core": "10.*.*@dev",
-		"typo3/cms-frontend": "10.*.*@dev",
+		"typo3/cms-adminpanel": "^10.0",
+		"typo3/cms-backend": "^10.0",
+		"typo3/cms-core": "^10.0",
+		"typo3/cms-frontend": "^10.0",
 		"psr/http-message": "~1.0",
 		"psr/http-server-handler": "^1.0",
 		"psr/http-server-middleware": "^1.0"
@@ -25,7 +25,6 @@
 		"typo3/cms": "*"
 	},
 	"replace": {
-		"feedit": "*",
 		"typo3/cms-feedit": "*"
 	},
 	"extra": {
