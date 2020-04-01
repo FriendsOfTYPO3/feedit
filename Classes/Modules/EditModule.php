@@ -31,7 +31,7 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 /**
  * Admin Panel Edit Module
  */
-class EditModule extends AbstractModule implements PageSettingsProviderInterface, InitializableInterface, ResourceProviderInterface
+class EditModule extends AbstractModule implements PageSettingsProviderInterface, RequestEnricherInterface, ResourceProviderInterface
 {
     /**
      * @var UriBuilder
@@ -128,8 +128,9 @@ class EditModule extends AbstractModule implements PageSettingsProviderInterface
      * Includes the frontend edit initialization
      *
      * @param ServerRequestInterface $request
+     * @return ServerRequestInterface
      */
-    public function initializeModule(ServerRequestInterface $request): void
+    public function enrich(ServerRequestInterface $request): ServerRequestInterface
     {
     }
 
