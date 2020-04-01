@@ -71,6 +71,7 @@ class FrontendEditPanel
         $this->cObj = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer::class);
         $this->cObj->start([]);
         $this->iconFactory = GeneralUtility::makeInstance(IconFactory::class);
+        $this->getLanguageService()->includeLLFile('EXT:core/Resources/Private/Language/locallang_tsfe.xlf');
     }
 
     /**
@@ -371,23 +372,13 @@ class FrontendEditPanel
     }
 
     /**
-     * Returns the label for key. If a translation for the language set in $this->uc['lang']
-     * is found that is returned, otherwise the default value.
-     * If the global variable $LOCAL_LANG is NOT an array (yet) then this function loads
-     * the global $LOCAL_LANG array with the content of "EXT:core/Resources/Private/Language/locallang_tsfe.xlf"
-     * such that the values therein can be used for labels in the Admin Panel
+     * Returns htmlescaped label for key.
      *
-     * @param string $key Key for a label in the $GLOBALS['LOCAL_LANG'] array of "EXT:core/Resources/Private/Language/locallang_tsfe.xlf
+     * @param string $key Localization key as accepted by LanguageService
      * @return string The value for the $key
      */
     protected function getLabel(string $key): string
     {
-        if (!is_array($GLOBALS['LOCAL_LANG'])) {
-            $this->getLanguageService()->includeLLFile('EXT:core/Resources/Private/Language/locallang_tsfe.xlf');
-            if (!is_array($GLOBALS['LOCAL_LANG'])) {
-                $GLOBALS['LOCAL_LANG'] = [];
-            }
-        }
         return htmlspecialchars($this->getLanguageService()->getLL($key));
     }
 

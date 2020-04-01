@@ -199,6 +199,7 @@ class EditToolbarService
                 ->setMaxResults(1)
                 ->execute()
                 ->fetch();
+            // @extensionScannerIgnoreLine At least in v10 this is a false positive
             $tsfe->sys_page->versionOL('pages', $row);
             if (is_array($row)) {
                 $link = (string)$uriBuilder->buildUriFromRoute(
