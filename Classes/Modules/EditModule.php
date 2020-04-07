@@ -20,6 +20,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Adminpanel\ModuleApi\AbstractModule;
 use TYPO3\CMS\Adminpanel\ModuleApi\InitializableInterface;
 use TYPO3\CMS\Adminpanel\ModuleApi\PageSettingsProviderInterface;
+use TYPO3\CMS\Adminpanel\ModuleApi\RequestEnricherInterface;
 use TYPO3\CMS\Adminpanel\ModuleApi\ResourceProviderInterface;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
@@ -132,6 +133,7 @@ class EditModule extends AbstractModule implements PageSettingsProviderInterface
      */
     public function enrich(ServerRequestInterface $request): ServerRequestInterface
     {
+        return $request;
     }
 
     /**
