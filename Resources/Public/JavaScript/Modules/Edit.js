@@ -15,7 +15,7 @@ function openBackendHandler(event) {
 		element = element.closest('a.typo3-feedit-btn-openBackend');
 	}
 
-	var vHWin = window.open(element.getAttribute('data-backendScript'), element.getAttribute('data-t3BeSitenameMd5'));
+	var vHWin = window.open(element.getAttribute('data-backendScript'), element.getAttribute('data-t3BeSitenameMd5'), 'noopener=yes');
 	vHWin.focus();
 	return false;
 }
