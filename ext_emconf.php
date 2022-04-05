@@ -1,6 +1,6 @@
 <?php
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'Frontend Editing',
+    'title' => 'Basic Frontend Editing',
     'description' => '',
     'category' => 'fe',
     'author' => 'Friends of TYPO3',
