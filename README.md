@@ -5,9 +5,10 @@
 
 # TYPO3 extension `feedit`
 
-This TYPO3 extension is a simple solution to edit TYPO3 page content elements
-directly in the frontend as a logged-in backend user. It adds edit icons around
-elements for this purpose.
+This TYPO3 extension is a simple solution to allow a logged in backend user to
+edit content elements of a TYPO3 page via the frontend. It inserts editing icons
+around elements for this purpose, which redirect the user to the corresponding
+content element form in the backend.
 
 The functionality was part of the TYPO3 Core until TYPO3 v10.0, and moved into
 its own extension, receiving its own public repository.
