@@ -1,8 +1,13 @@
 {
 	"name": "friendsoftypo3/feedit",
 	"type": "typo3-cms-extension",
-	"description": "Provide functionality for edit toolbars of pages and content",
-	"homepage": "https://typo3.org",
+	"description": "Edit a TYPO3 page content element in the backend by clicking it in the frontend as a logged-in backend user.",
+	"homepage": "https://extensions.typo3.org/extension/feedit",
+	"support": {
+		"issues": "https://github.com/FriendsOfTYPO3/feedit/issues",
+		"source": "https://github.com/FriendsOfTYPO3/feedit",
+		"docs": "https://docs.typo3.org/p/friendsoftypo3/feedit/main/en-us/"
+	},
 	"license": ["GPL-2.0-or-later"],
 	"authors": [{
 		"name": "TYPO3 Core Team",
