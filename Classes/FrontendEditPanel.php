@@ -19,6 +19,7 @@ use TYPO3\CMS\Core\Http\Uri;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Page\AssetCollector;
 use TYPO3\CMS\Core\Type\Bitmask\JsConfirmation;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
@@ -95,6 +96,7 @@ class FrontendEditPanel
 
         // Special content is about to be shown, so the cache must be disabled.
         $this->frontendController->set_no_cache('Frontend edit panel is shown', true);
+        GeneralUtility::makeInstance(AssetCollector::class)->addStyleSheet('feedit', GeneralUtility::getFileAbsFileName('EXT:feedit/Resources/Public/Css/feedit.css'));
 
         $formName = 'TSFE_EDIT_FORM_' . substr($this->frontendController->uniqueHash(), 0, 4);
         $formTag = '<form name="' . $formName . '" id ="' . $formName . '" action="' . htmlspecialchars($this->getReturnUrl($dataArr['uid'] ?? null)) . '" method="post" enctype="multipart/form-data">';
