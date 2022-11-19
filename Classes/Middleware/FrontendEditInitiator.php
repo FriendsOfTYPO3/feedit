@@ -21,6 +21,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Adminpanel\Service\ConfigurationService;
+use TYPO3\CMS\Adminpanel\Utility\StateUtility;
 use TYPO3\CMS\Backend\FrontendBackendUserAuthentication;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Feedit\DataHandling\FrontendEditDataHandler;
@@ -44,7 +45,7 @@ class FrontendEditInitiator implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (isset($GLOBALS['BE_USER']) && $GLOBALS['BE_USER'] instanceof FrontendBackendUserAuthentication) {
+        if (isset($GLOBALS['BE_USER']) && $GLOBALS['BE_USER'] instanceof FrontendBackendUserAuthentication && StateUtility::isOpen()) {
             $this->initializeTypoScriptFrontend(
                 $GLOBALS['TSFE'],
                 $request,
