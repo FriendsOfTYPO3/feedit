@@ -64,11 +64,12 @@ class FrontendEditDataHandler
     public function editAction()
     {
         // Commands
-        list($table, $uid) = explode(':', $this->configuration['record']);
-        $uid = (int)$uid;
-        $cmd = $this->configuration['cmd'];
+        $split= explode(':', (string)($this->configuration['record'] ?? ''));
+        $table = $split[0] ?? '';
+        $uid = (int)($split[1] ?? 0);
+        $cmd = $this->configuration['cmd'] ?? '';
         // Look for some configuration data that indicates we should save.
-        if (($this->configuration['doSave'] || $this->configuration['update'] || $this->configuration['update_close']) && is_array($this->configuration['data'])) {
+        if ((($this->configuration['doSave'] ?? '') || ($this->configuration['update'] ?? '') || ($this->configuration['update_close'] ?? '')) && is_array($this->configuration['data'] ?? null)) {
             $cmd = 'save';
         }
         if ($cmd === 'save' || $cmd && $table && $uid && isset($GLOBALS['TCA'][$table])) {

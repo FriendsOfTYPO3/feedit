@@ -1,4 +1,5 @@
 <?php
+
 namespace TYPO3\CMS\Feedit;
 
 /*
@@ -25,6 +26,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Feedit\Service\EditToolbarService;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
@@ -61,16 +63,16 @@ class FrontendEditPanel
     /**
      * Constructor for the edit panel
      *
-     * @param mixed $_ Previous the database connection
      * @param TypoScriptFrontendController $frontendController
      * @param FrontendBackendUserAuthentication $backendUser
      */
-    public function __construct($_ = null, TypoScriptFrontendController $frontendController = null, FrontendBackendUserAuthentication $backendUser = null)
+    public function __construct(ContentObjectRenderer $contentObjectRenderer, TypoScriptFrontendController $frontendController = null, FrontendBackendUserAuthentication $backendUser = null)
     {
         $this->frontendController = $frontendController ?: $GLOBALS['TSFE'];
         $this->backendUser = $backendUser ?: $GLOBALS['BE_USER'];
-        $this->cObj = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer::class);
-        $this->cObj->start([]);
+        #      $this->cObj = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer::class);
+        #      $this->cObj->start([]);
+        $this->cObj = $contentObjectRenderer;
         $this->iconFactory = GeneralUtility::makeInstance(IconFactory::class);
         $this->getLanguageService()->includeLLFile('EXT:core/Resources/Private/Language/locallang_tsfe.xlf');
     }
@@ -111,7 +113,7 @@ class FrontendEditPanel
         }
         if (isset($allow['edit'])) {
             $icon = '<span title="' . $this->getLabel('p_editRecord') . '">' . $this->iconFactory->getIcon('actions-document-open', Icon::SIZE_SMALL)->render('inline') . '</span>';
-            $panel .= $this->editPanelLinkWrap($icon, $formName, 'edit', $dataArr['_LOCALIZED_UID'] ? $table . ':' . $dataArr['_LOCALIZED_UID'] : $currentRecord);
+            $panel .= $this->editPanelLinkWrap($icon, $formName, 'edit', isset($dataArr['_LOCALIZED_UID']) ? $table . ':' . $dataArr['_LOCALIZED_UID'] : $currentRecord);
         }
         // Hiding in workspaces because implementation is incomplete
         if (isset($allow['move']) && $sortField && $this->backendUser->workspace === 0) {
@@ -122,7 +124,7 @@ class FrontendEditPanel
         }
         // Hiding in workspaces because implementation is incomplete
         // Hiding for localizations because it is unknown what should be the function in that case
-        if (isset($allow['hide']) && $hideField && $this->backendUser->workspace === 0 && !$dataArr['_LOCALIZED_UID']) {
+        if (isset($allow['hide']) && $hideField && $this->backendUser->workspace === 0 && !($dataArr['_LOCALIZED_UID'] ?? 0)) {
             if ($dataArr[$hideField]) {
                 $icon = $this->iconFactory->getIcon('actions-edit-unhide', Icon::SIZE_SMALL)->render('inline');
                 $panel .= $this->editPanelLinkWrap($icon, $formName, 'unhide');
@@ -146,14 +148,16 @@ class FrontendEditPanel
         }
         // Hiding in workspaces because implementation is incomplete
         // Hiding for localizations because it is unknown what should be the function in that case
-        if (isset($allow['delete']) && $this->backendUser->workspace === 0 && !$dataArr['_LOCALIZED_UID']) {
+        if (isset($allow['delete']) && $this->backendUser->workspace === 0 && !($dataArr['_LOCALIZED_UID'] ?? 0)) {
             $icon = '<span title="' . $this->getLabel('p_delete') . '">'
                 . $this->iconFactory->getIcon('actions-edit-delete', Icon::SIZE_SMALL)->render('inline')
                 . '</span>';
             $panel .= $this->editPanelLinkWrap($icon, $formName, 'delete', '', $this->getLabel('p_deleteConfirm'));
         }
+
         // Final
-        $labelTxt = $this->cObj->stdWrap($conf['label'], $conf['label.']);
+//        $labelTxt = $this->cObj->stdWrap($conf['label'] ?? '', $conf['label.'] ?? []);
+        $labelTxt = '';
         foreach ((array)$hiddenFields as $name => $value) {
             $hiddenFieldString .= '<input type="hidden" name="TSFE_EDIT[' . htmlspecialchars($name) . ']" value="' . htmlspecialchars($value) . '"/>' . LF;
         }
@@ -163,37 +167,37 @@ class FrontendEditPanel
                                     <input type="hidden" class="typo3-feedit-cmd" name="TSFE_EDIT[cmd]" value="" />
                                     <input type="hidden" name="TSFE_EDIT[record]" value="' . $currentRecord . '" />
                                     <div class="typo3-editPanel">'
-                                        . '<div class="typo3-editPanel-btn-group">'
-                                        . $panel
-                                        . '</div>' .
+            . '<div class="typo3-editPanel-btn-group">'
+            . $panel
+            . '</div>' .
             ($labelTxt ? '<div class="typo3-editPanel-label">' . sprintf($labelTxt, htmlspecialchars(GeneralUtility::fixed_lgd_cs($dataArr[$labelField], 50))) . '</div>' : '') . '
                                     </div>
                                 </form>';
 
-        // Wrap the panel
-        if ($conf['innerWrap']) {
-            $panel = $this->cObj->wrap($panel, $conf['innerWrap']);
-        }
-        if ($conf['innerWrap.']) {
-            $panel = $this->cObj->stdWrap($panel, $conf['innerWrap.']);
-        }
-
-        // Wrap the complete panel
-        if ($conf['outerWrap']) {
-            $panel = $this->cObj->wrap($panel, $conf['outerWrap']);
-        }
-        if ($conf['outerWrap.']) {
-            $panel = $this->cObj->stdWrap($panel, $conf['outerWrap.']);
-        }
-        if ($conf['printBeforeContent']) {
+//        // Wrap the panel
+//        if ($conf['innerWrap']) {
+//            $panel = $this->cObj->wrap($panel, $conf['innerWrap']);
+//        }
+//        if ($conf['innerWrap.']) {
+//            $panel = $this->cObj->stdWrap($panel, $conf['innerWrap.']);
+//        }
+//
+//        // Wrap the complete panel
+//        if ($conf['outerWrap']) {
+//            $panel = $this->cObj->wrap($panel, $conf['outerWrap']);
+//        }
+//        if ($conf['outerWrap.']) {
+//            $panel = $this->cObj->stdWrap($panel, $conf['outerWrap.']);
+//        }
+        if ($conf['printBeforeContent'] ?? false) {
             $finalOut = $panel . $content;
         } else {
             $finalOut = $content . $panel;
         }
 
         $hidden = $this->isDisabled($table, $dataArr) ? ' typo3-feedit-element-hidden' : '';
-        $outerWrapConfig = $conf['stdWrap.'] ?? ['wrap' => '<div class="typo3-feedit-element' . $hidden . '">|</div>'];
-        $finalOut = $this->cObj->stdWrap($finalOut, $outerWrapConfig);
+//        $outerWrapConfig = $conf['stdWrap.'] ?? ['wrap' => '<div class="typo3-feedit-element' . $hidden . '">|</div>'];
+//        $finalOut = $this->cObj->stdWrap($finalOut, $outerWrapConfig);
 
         return $finalOut;
     }
@@ -213,7 +217,7 @@ class FrontendEditPanel
      * @param string $fieldList
      * @return string The input content string, possibly with edit icons added (not necessarily in the end but just after the last string of normal content.
      */
-    public function editIcons($content, $params, array $conf = [], $currentRecord = '', array $dataArr = [], $addUrlParamStr = '', $table, $editUid, $fieldList)
+    public function editIcons($content, $params, array $conf = [], $currentRecord = '', array $dataArr = [], $addUrlParamStr = '', $table = '', $editUid = 0, $fieldList = '')
     {
         // Special content is about to be shown, so the cache must be disabled.
         $this->frontendController->set_no_cache('Display frontend edit icons', true);
@@ -225,15 +229,15 @@ class FrontendEditPanel
 
         $uriBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Routing\UriBuilder::class);
         $url = (string)$uriBuilder->buildUriFromRoute(
-            'record_edit',
-            [
-                'edit[' . $table . '][' . $editUid . ']' => 'edit',
-                'columnsOnly' => $fieldList,
-                'noView' => $noView,
-                'feEdit' => 1,
-                'returnUrl' => htmlspecialchars($this->getReturnUrl($editUid)),
-            ]
-        ) . $addUrlParamStr;
+                'record_edit',
+                [
+                    'edit[' . $table . '][' . $editUid . ']' => 'edit',
+                    'columnsOnly' => $fieldList,
+                    'noView' => $noView,
+                    'feEdit' => 1,
+                    'returnUrl' => htmlspecialchars($this->getReturnUrl($editUid)),
+                ]
+            ) . $addUrlParamStr;
         $icon = $this->editPanelLinkWrap_doWrap($iconImg, $url, 'content-link');
         if ($conf['beforeLastTag'] < 0) {
             $content = $icon . $content;
@@ -413,7 +417,7 @@ class FrontendEditPanel
         if (is_int($recordUid)) {
             $uri = new Uri($url);
             $uri = $uri->withFragment('#c' . $recordUid);
-            $url = (string) $uri;
+            $url = (string)$uri;
         }
 
         return $url;

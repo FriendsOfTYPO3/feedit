@@ -44,7 +44,6 @@ class EditModule extends AbstractModule implements PageSettingsProviderInterface
      */
     public function __construct(UriBuilder $uriBuilder)
     {
-        parent::__construct();
         $this->uriBuilder = $uriBuilder;
     }
 

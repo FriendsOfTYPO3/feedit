@@ -50,7 +50,7 @@ class EditToolbarService
         $iconFactory = GeneralUtility::makeInstance(IconFactory::class);
         $tsfe = $this->getTypoScriptFrontendController();
         //  If mod.newContentElementWizard.override is set, use that extension's create new content wizard instead:
-        $moduleName = BackendUtility::getPagesTSconfig($tsfe->page['uid'])['mod.']['newContentElementWizard.']['override'] ?? 'new_content_element';
+        $moduleName = BackendUtility::getPagesTSconfig($tsfe->page['uid'])['mod.']['newContentElementWizard.']['override'] ?? 'new_content_element_wizard';
         $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
         $perms = $this->getBackendUser()->calcPerms($tsfe->page);
         $langAllowed = $this->getBackendUser()->checkLanguageAccess($languageAspect->getId());

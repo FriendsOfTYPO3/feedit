@@ -9,3 +9,11 @@ services:
 
   TYPO3\CMS\Feedit\Modules\EditModule:
     public: true
+
+  TYPO3\CMS\Feedit\Hooks\StdWrapEditPanelHook:
+    public: false
+
+  TYPO3\CMS\Feedit\ContentObject\EditPanelContentObject:
+    tags:
+      - name: frontend.contentobject
+        identifier: 'EDITPANEL'

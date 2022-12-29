@@ -57,7 +57,7 @@ class FrontendEditInitiator implements MiddlewareInterface
             if ($active && isset($config['enable.'])) {
                 foreach ($config['enable.'] as $value) {
                     if ($value) {
-                        $parameters = $request->getParsedBody()['TSFE_EDIT'] ?? $request->getQueryParams()['TSFE_EDIT'] ?? null;
+                        $parameters = $request->getParsedBody()['TSFE_EDIT'] ?? $request->getQueryParams()['TSFE_EDIT'] ?? [];
                         if ($this->isValidEditAction($parameters)) {
                             GeneralUtility::makeInstance(FrontendEditDataHandler::class, $parameters)->editAction();
                         }
@@ -80,10 +80,10 @@ class FrontendEditInitiator implements MiddlewareInterface
         if (!is_array($parameters)) {
             return false;
         }
-        if ($parameters['cancel']) {
+        if ($parameters['cancel'] ?? false) {
             unset($parameters['cmd']);
         } else {
-            $cmd = (string)$parameters['cmd'];
+            $cmd = (string)($parameters['cmd'] ?? '');
             if (($cmd !== 'edit' || is_array($parameters['data']) && ($parameters['doSave'] || $parameters['update'] || $parameters['update_close'])) && $cmd !== 'new') {
                 // $cmd can be a command like "hide" or "move". If $cmd is "edit" or "new" it's an indication to show the formfields. But if data is sent with update-flag then $cmd = edit is accepted because edit may be sent because of .keepGoing flag.
                 return true;
