@@ -37,20 +37,22 @@ class StdWrapEditPanelHook implements ContentObjectStdWrapHookInterface
 
     public function stdWrapPostProcess($content, array $configuration, ContentObjectRenderer &$parentObject)
     {
-        $configurationService = GeneralUtility::makeInstance(ConfigurationService::class);
         $user = $this->getFrontendBackendUser();
-        if ($user && ($configuration['editPanel'] ?? false) && StateUtility::isOpen() && $configurationService->getConfigurationOption('edit', 'displayIcons')) {
-            [$table, $uid] = explode(':', $parentObject->currentRecord);
-            $allowedActions = $user->getAllowedEditActions($table, $configuration['editPanel.'] ?? [], $parentObject->data['pid']);
-            $frontendEditPanel = GeneralUtility::makeInstance(FrontendEditPanel::class, $parentObject);
-            return $frontendEditPanel->editPanel(
-                $content,
-                $configuration['editPanel.'] ?? [],
-                $parentObject->currentRecord,
-                $parentObject->data,
-                'tt_content',
-                $allowedActions
-            );
+        if ($user) {
+            $configurationService = GeneralUtility::makeInstance(ConfigurationService::class);
+            if (($configuration['editPanel'] ?? false) && StateUtility::isOpen() && $configurationService->getConfigurationOption('edit', 'displayIcons')) {
+                [$table, $uid] = explode(':', $parentObject->currentRecord);
+                $allowedActions = $user->getAllowedEditActions($table, $configuration['editPanel.'] ?? [], $parentObject->data['pid']);
+                $frontendEditPanel = GeneralUtility::makeInstance(FrontendEditPanel::class, $parentObject);
+                return $frontendEditPanel->editPanel(
+                    $content,
+                    $configuration['editPanel.'] ?? [],
+                    $parentObject->currentRecord,
+                    $parentObject->data,
+                    'tt_content',
+                    $allowedActions
+                );
+            }
         }
         return $content;
     }
