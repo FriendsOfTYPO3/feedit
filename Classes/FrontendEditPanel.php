@@ -174,21 +174,21 @@ class FrontendEditPanel
                                     </div>
                                 </form>';
 
-//        // Wrap the panel
-//        if ($conf['innerWrap']) {
-//            $panel = $this->cObj->wrap($panel, $conf['innerWrap']);
-//        }
-//        if ($conf['innerWrap.']) {
-//            $panel = $this->cObj->stdWrap($panel, $conf['innerWrap.']);
-//        }
-//
-//        // Wrap the complete panel
-//        if ($conf['outerWrap']) {
-//            $panel = $this->cObj->wrap($panel, $conf['outerWrap']);
-//        }
-//        if ($conf['outerWrap.']) {
-//            $panel = $this->cObj->stdWrap($panel, $conf['outerWrap.']);
-//        }
+        // Wrap the panel
+        if ($conf['innerWrap']) {
+            $panel = $this->cObj->wrap($panel, $conf['innerWrap']);
+        }
+        if ($conf['innerWrap.']) {
+            $panel = $this->cObj->stdWrap($panel, $conf['innerWrap.']);
+        }
+
+        // Wrap the complete panel
+        if ($conf['outerWrap']) {
+            $panel = $this->cObj->wrap($panel, $conf['outerWrap']);
+        }
+        if ($conf['outerWrap.']) {
+            $panel = $this->cObj->stdWrap($panel, $conf['outerWrap.']);
+        }
         if ($conf['printBeforeContent'] ?? false) {
             $finalOut = $panel . $content;
         } else {
@@ -196,8 +196,8 @@ class FrontendEditPanel
         }
 
         $hidden = $this->isDisabled($table, $dataArr) ? ' typo3-feedit-element-hidden' : '';
-//        $outerWrapConfig = $conf['stdWrap.'] ?? ['wrap' => '<div class="typo3-feedit-element' . $hidden . '">|</div>'];
-//        $finalOut = $this->cObj->stdWrap($finalOut, $outerWrapConfig);
+        $outerWrapConfig = $conf['stdWrap.'] ?? ['wrap' => '<div class="typo3-feedit-element' . $hidden . '">|</div>'];
+        $finalOut = $this->cObj->stdWrap($finalOut, $outerWrapConfig);
 
         return $finalOut;
     }
