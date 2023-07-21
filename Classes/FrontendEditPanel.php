@@ -175,18 +175,18 @@ class FrontendEditPanel
                                 </form>';
 
         // Wrap the panel
-        if ($conf['innerWrap']) {
+        if ($conf['innerWrap'] ?? false) {
             $panel = $this->cObj->wrap($panel, $conf['innerWrap']);
         }
-        if ($conf['innerWrap.']) {
+        if ($conf['innerWrap.'] ?? false) {
             $panel = $this->cObj->stdWrap($panel, $conf['innerWrap.']);
         }
 
         // Wrap the complete panel
-        if ($conf['outerWrap']) {
+        if ($conf['outerWrap'] ?? false) {
             $panel = $this->cObj->wrap($panel, $conf['outerWrap']);
         }
-        if ($conf['outerWrap.']) {
+        if ($conf['outerWrap.'] ?? false) {
             $panel = $this->cObj->stdWrap($panel, $conf['outerWrap.']);
         }
         if ($conf['printBeforeContent'] ?? false) {
